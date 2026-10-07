@@ -36,6 +36,7 @@ import { SmartAnalytics } from "./SmartAnalytics";
 import { MedicineIntelligence } from "./MedicineIntelligence";
 
 import { PetSurveyChart } from "./PetSurveyChart";
+import { OutbreakHeatmap } from "./OutbreakHeatmap";
 import {
   Tabs,
   TabsContent,
@@ -536,6 +537,9 @@ export function DashboardOverview({ onNavigate }: { onNavigate?: (view: any) => 
               );
             })}
           </div>
+
+          {/* Outbreak Heatmap — click to open Outbreak Monitor */}
+          <OutbreakHeatmap onNavigate={onNavigate} />
 
           {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

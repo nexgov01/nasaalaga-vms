@@ -4,6 +4,7 @@ import { authenticate, requireRole, optionalAuthenticate, AuthRequest } from '..
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { createBackup, normalizeFrequency } from '../services/backup';
+import { noteAnthropicFailure, markCreditsOk, getCreditStatus, CREDITS_LOW_MESSAGE } from '../services/aiCredits';
 import { suggestIntervention, AlertInput, SuggestionResult } from '../services/interventionAI';
 import { notifyMassSchedule, notifyAppointmentOwner } from '../services/scheduleNotify';
 import { STAFF_ONLY_TYPES, syncIntervention, syncOutbreak, syncOutbreaksBySource, syncOrder, syncDeployment, syncObservation, removeLinked } from '../services/scheduleSync';
@@ -2709,6 +2710,7 @@ router.post('/ai/analyze', authenticate, async (req: AuthRequest, res: Response)
     }
 
     const apiKey = process.env.ANTHROPIC_API_KEY;
+    let creditsLow = false;
 
     // ── If API key is available, use Claude ───────────────────────────────
     if (apiKey) {
@@ -2727,10 +2729,13 @@ router.post('/ai/analyze', authenticate, async (req: AuthRequest, res: Response)
           }),
         });
         if (upstream.ok) {
+          markCreditsOk();
           const data = await upstream.json() as any;
           const text = (data.content || []).map((b: any) => b.text || '').join('\n');
           return res.json({ text, source: 'claude' });
         }
+        const errBody = await upstream.json().catch(() => ({}));
+        if (noteAnthropicFailure(upstream.status, errBody)) creditsLow = true;
       } catch (_) { /* fall through to rule-based */ }
     }
 
@@ -2813,7 +2818,7 @@ RECOMMENDATIONS:
       text = `SUMMARY:\nAnalysis complete based on available program data.\n\nKEY FINDINGS:\n- Data patterns fall within normal operating ranges for most indicators.\n- No critical anomalies detected in the current reporting period.\n\nRECOMMENDATIONS:\n- Review monthly performance against established targets.\n- Escalate any metric deviations above 15% to the City Veterinarian promptly.\n- Ensure all barangay health workers submit timely data for accurate trend analysis.`;
     }
 
-    return res.json({ text, source: 'rule-based' });
+    return res.json({ text, source: 'rule-based', ...(creditsLow ? { creditsLow: true, note: CREDITS_LOW_MESSAGE } : {}) });
   } catch (err: any) {
     return res.status(500).json({ error: err.message });
   }
@@ -2822,6 +2827,11 @@ RECOMMENDATIONS:
 // ── AI intervention suggestions for Smart Alerts ──────────────────────────
 // Claude proposes a plan from the alert + real data gathered server-side. Nothing is saved here;
 // a person reviews it and chooses "Use this plan" in the UI. Falls back to a labelled template.
+// GET /ai/credits-status — lets staff see a "credits low" notice before they hit a dead end
+router.get('/ai/credits-status', authenticate, (_req: AuthRequest, res: Response) => {
+  return res.json({ success: true, configured: !!process.env.ANTHROPIC_API_KEY, ...getCreditStatus() });
+});
+
 const AI_ROLES = ['admin', 'superadmin', 'cvoStaff', 'bahw', 'cityHealth'];
 const aiHits = new Map<string, number[]>();                              // per-user rate limit (protects API spend)
 const aiCache = new Map<string, { at: number; result: SuggestionResult }>();   // reopening the same alert is free
@@ -3165,7 +3175,13 @@ router.post('/budget/ai-analyze', authenticate, async (req: AuthRequest, res: Re
       }),
     });
     const data = await response.json() as any;
-    if (!response.ok) return res.status(500).json({ error: data.error?.message || 'Anthropic API error' });
+    if (!response.ok) {
+      if (noteAnthropicFailure(response.status, data)) {
+        return res.status(503).json({ error: CREDITS_LOW_MESSAGE, creditsLow: true });
+      }
+      return res.status(500).json({ error: data.error?.message || 'Anthropic API error' });
+    }
+    markCreditsOk();
     const text = (data.content || []).map((c: any) => c.text || '').join('');
     const clean = text.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(clean);

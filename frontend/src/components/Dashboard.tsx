@@ -7,6 +7,7 @@ import { GuestDashboard } from './GuestDashboard';
 import { CityHealthDashboard } from './CityHealthDashboard';
 import type { User } from '../App';
 import { endSession, hasPendingFor } from '../offline';
+import { AICreditsNotice } from './AICreditsNotice';
 import { DataPrivacyNotice, hasAcceptedPrivacy, recordPrivacyAcceptance } from './DataPrivacyGate';
 
 export function Dashboard() {
@@ -69,6 +70,7 @@ export function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {(role === 'admin' || role === 'superadmin' || role === 'cvoStaff') && <AICreditsNotice />}
       {(role === 'admin' || role === 'superadmin' || role === 'cvoStaff') ? (
         <AdminDashboard user={user} onLogout={handleLogout} />
       ) : role === 'bahw' ? (

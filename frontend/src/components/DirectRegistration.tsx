@@ -3,11 +3,10 @@ import {
   Search, PawPrint, User, UserX, Tag, CheckCircle, Camera,
   AlertTriangle, ChevronRight, Plus, X, UserCheck, Hash
 } from 'lucide-react';
+import { BreedSelect } from './BreedSelect';
 import { MOCK_USERS, MOCK_PETS, generateTempId, type Pet, type User as UserType } from '../types';
 
 const SPECIES = ['Dog', 'Cat', 'Bird', 'Rabbit', 'Others'];
-const BREEDS_DOG = ['Aspin', 'Askal', 'German Shepherd', 'Shih Tzu', 'Poodle', 'Labrador', 'Chow Chow', 'Others'];
-const BREEDS_CAT = ['Puspin', 'Persian', 'Siamese', 'British Shorthair', 'Maine Coon', 'Others'];
 
 interface DirectRegistrationProps {
   adminUserId: string;
@@ -64,8 +63,6 @@ export function DirectRegistration({ adminUserId }: DirectRegistrationProps) {
       u.email.toLowerCase().includes(ownerSearch.toLowerCase())
     )
   );
-
-  const breedOptions = petForm.species === 'Dog' ? BREEDS_DOG : petForm.species === 'Cat' ? BREEDS_CAT : ['Others'];
 
   const setPet = (key: string, value: string) => {
     setPetForm(f => ({ ...f, [key]: value }));
@@ -371,24 +368,7 @@ export function DirectRegistration({ adminUserId }: DirectRegistrationProps) {
 
             <div>
               <label className="block text-sm text-gray-600 mb-1">Breed <span className="text-red-500">*</span></label>
-              {petForm.species && breedOptions.length > 1 ? (
-                <select
-                  value={petForm.breed}
-                  onChange={e => setPet('breed', e.target.value)}
-                  className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5EA6] ${errors.breed ? 'border-red-400' : 'border-gray-300'}`}
-                >
-                  <option value="">Select</option>
-                  {breedOptions.map(b => <option key={b} value={b}>{b}</option>)}
-                </select>
-              ) : (
-                <input
-                  type="text"
-                  value={petForm.breed}
-                  onChange={e => setPet('breed', e.target.value)}
-                  placeholder="Enter breed"
-                  className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5EA6] ${errors.breed ? 'border-red-400' : 'border-gray-300'}`}
-                />
-              )}
+              <BreedSelect species={petForm.species} value={petForm.breed} onChange={v => setPet('breed', v)} className={`px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2B5EA6] ${errors.breed ? 'border-red-400' : 'border-gray-300'}`} />
               {errors.breed && <p className="text-red-500 text-xs mt-1">{errors.breed}</p>}
             </div>
 

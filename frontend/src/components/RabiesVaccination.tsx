@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { BreedSelect } from './BreedSelect';
 import { Plus, Search, Syringe, Download, Calendar, PawPrint, AlertCircle, MapPin, Heart, X, CheckCircle, Edit, Trash2, Eye } from 'lucide-react';
 
 interface Pet {
@@ -789,12 +790,7 @@ export function RabiesVaccination() {
               </div>
               <div className="flex flex-col">
                 <label className="text-gray-600">Breed</label>
-                <input
-                  type="text"
-                  value={newPet.breed}
-                  onChange={(e) => setNewPet({ ...newPet, breed: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2B5EA6] focus:border-transparent"
-                />
+                <BreedSelect species={newPet.species} value={newPet.breed} onChange={(v) => setNewPet(p => ({ ...p, breed: v }))} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2B5EA6] focus:border-transparent" />
               </div>
               <div className="flex flex-col">
                 <label className="text-gray-600">Age</label>

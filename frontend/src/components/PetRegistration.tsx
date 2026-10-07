@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
+import { BreedSelect } from './BreedSelect';
 import { toast } from "sonner";
 import type { FC } from "react";
 import {
@@ -2256,7 +2257,7 @@ export function PetRegistration({ userRole, initialTab }: { userRole?: string; i
               <div className="grid grid-cols-2 gap-3">
                 <div><label className={"block text-xs font-semibold text-gray-600 mb-1.5"}>Pet Name / Description *</label><input value={impoundForm.petName} onChange={e=>setImpoundForm(p=>({...p,petName:e.target.value}))} className={INPUT} placeholder="e.g., Brown male aspin"/></div>
                 <div><label className={"block text-xs font-semibold text-gray-600 mb-1.5"}>Species</label><select value={impoundForm.species} onChange={e=>setImpoundForm(p=>({...p,species:e.target.value}))} className={INPUT}><option>Dog</option><option>Cat</option><option>Other</option></select></div>
-                <div><label className={"block text-xs font-semibold text-gray-600 mb-1.5"}>Breed</label><input value={impoundForm.breed} onChange={e=>setImpoundForm(p=>({...p,breed:e.target.value}))} className={INPUT} placeholder="e.g., Aspin, Puspin"/></div>
+                <div><label className={"block text-xs font-semibold text-gray-600 mb-1.5"}>Breed</label><BreedSelect species={impoundForm.species} value={impoundForm.breed} onChange={v=>setImpoundForm(p=>({...p,breed:v}))} className={INPUT}/></div>
                 <div><label className={"block text-xs font-semibold text-gray-600 mb-1.5"}>Color / Markings</label><input value={impoundForm.color} onChange={e=>setImpoundForm(p=>({...p,color:e.target.value}))} className={INPUT} placeholder="e.g., Brown with white chest"/></div>
                 <div><label className={"block text-xs font-semibold text-gray-600 mb-1.5"}>Barangay Found *</label>{isBahw
                   ? <input value={impoundForm.barangay || bahwBarangay || 'Your assigned barangay'} disabled className={INPUT+' bg-gray-100 text-gray-500'}/>
@@ -2393,7 +2394,7 @@ export function PetRegistration({ userRole, initialTab }: { userRole?: string; i
                 <div className="grid grid-cols-2 gap-3">
                   <div><label className="block text-xs font-semibold text-gray-600 mb-1.5">Pet Name *</label><input value={np.petName} onChange={e=>setNp({...np,petName:e.target.value})} className={INPUT} placeholder="e.g., Brownie"/></div>
                   <div><label className="block text-xs font-semibold text-gray-600 mb-1.5">Species *</label><select value={np.species} onChange={e=>setNp({...np,species:e.target.value})} className={INPUT}><option value="">Select…</option><option value="Dog">Dog</option><option value="Cat">Cat</option></select></div>
-                  <div><label className="block text-xs font-semibold text-gray-600 mb-1.5">Breed *</label><input value={np.breed} onChange={e=>setNp({...np,breed:e.target.value})} className={INPUT} placeholder="e.g., Aspin"/></div>
+                  <div><label className="block text-xs font-semibold text-gray-600 mb-1.5">Breed *</label><BreedSelect species={np.species} value={np.breed} onChange={v=>setNp(p=>({...p,breed:v}))} className={INPUT}/></div>
                   <div><label className="block text-xs font-semibold text-gray-600 mb-1.5">Age</label><input value={np.age} onChange={e=>setNp({...np,age:e.target.value})} className={INPUT} placeholder="e.g., 2 years"/></div>
                   <div><label className="block text-xs font-semibold text-gray-600 mb-1.5">Color</label><input value={np.color} onChange={e=>setNp({...np,color:e.target.value})} className={INPUT} placeholder="e.g., Brown"/></div>
                   <div><label className="block text-xs font-semibold text-gray-600 mb-1.5">Gender</label><select value={np.gender} onChange={e=>setNp({...np,gender:e.target.value})} className={INPUT}><option value="">Select…</option><option value="Male">Male</option><option value="Female">Female</option></select></div>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { BreedSelect } from './BreedSelect';
 import { toast } from 'sonner';
 import { api } from '../lib/api';
 
@@ -347,12 +348,7 @@ export function PetPreRegistration({ ownerId: propOwnerId, ownerEmail: propOwner
                     </select>
                   </Field>
                   <Field label="Breed" opt>
-                    <input
-                      className="pr-input"
-                      placeholder="e.g. Aspin"
-                      value={form.breed}
-                      onChange={e => set('breed', e.target.value)}
-                    />
+                    <BreedSelect species={form.species} value={form.breed} onChange={v => set('breed', v)} className="pr-input" />
                   </Field>
                   <Field label="Age" opt>
                     <input

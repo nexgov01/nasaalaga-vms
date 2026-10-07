@@ -10,6 +10,7 @@
  * and labelled as such (source: 'rule-based'), so the feature never dead-ends and never pretends to be AI.
  */
 import { query } from '../db';
+import { noteAnthropicFailure, markCreditsOk, AICreditsError, CREDITS_LOW_MESSAGE } from './aiCredits';
 
 export interface AlertInput {
   id?: string;
@@ -41,6 +42,7 @@ export interface SuggestionResult {
   source: 'claude' | 'rule-based';
   model?: string;
   note?: string;          // why we fell back, shown to the user
+  creditsLow?: boolean;   // true when the fallback happened because Anthropic credits ran out
   generatedAt: string;
 }
 
@@ -193,8 +195,10 @@ Propose the intervention plan.`;
     });
     if (!resp.ok) {
       const body: any = await resp.json().catch(() => ({}));
+      if (noteAnthropicFailure(resp.status, body)) throw new AICreditsError();
       throw new Error(`Anthropic API ${resp.status}: ${body?.error?.message || 'request failed'}`);
     }
+    markCreditsOk();
     const data: any = await resp.json();
     const block = (data.content || []).find((b: any) => b.type === 'tool_use' && b.name === TOOL.name);
     if (!block?.input) throw new Error('Claude returned no plan');
@@ -287,10 +291,12 @@ export async function suggestIntervention(a: AlertInput): Promise<SuggestionResu
     return { suggestion: validate(raw, ctx), source: 'claude', model, generatedAt };
   } catch (err: any) {
     const noKey = /not configured/.test(err?.message || '');
+    const noCredits = err instanceof AICreditsError;
     console.error('⚠ AI suggestion fell back to rule-based:', err?.message);
     return {
       suggestion: ruleBased(a, ctx), source: 'rule-based', generatedAt,
-      note: noKey ? 'Claude is not connected on this server (no API key), so a standard template is shown.'
+      creditsLow: noCredits || undefined,
+      note: noCredits ? CREDITS_LOW_MESSAGE : noKey ? 'Claude is not connected on this server (no API key), so a standard template is shown.'
                   : 'Claude could not be reached just now, so a standard template is shown. Try again in a moment.',
     };
   }
